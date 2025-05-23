@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import {
   tortasPersonalizadas,
@@ -7,16 +7,15 @@ import {
 } from "../data/productos";
 
 function Catalogo() {
-  const [categoria, setCategoria] = useState("torta");
+  const { categoria = "torta" } = useParams();
   const [filtro, setFiltro] = useState("todos");
 
   const categorias = {
     torta: {
       label: "Tortas Personalizadas",
-      productos: tortasPersonalizadas.filter((torta) => {
-        if (filtro === "todos") return true;
-        return torta.relleno.toLowerCase().includes(filtro);
-      })
+      productos: tortasPersonalizadas.filter((torta) =>
+        filtro === "todos" ? true : torta.relleno?.toLowerCase().includes(filtro)
+      )
     },
     vaso: {
       label: "Tortas en Vaso",
@@ -28,33 +27,13 @@ function Catalogo() {
     }
   };
 
-  const activa = categorias[categoria];
+  const activa = categorias[categoria] || categorias["torta"];
 
   return (
     <section className="mt-24 px-6 max-w-7xl mx-auto">
       <h2 className="text-3xl font-bold text-purple-700 text-center mb-6">
-        Catálogo de Dulzuras
+        {activa.label}
       </h2>
-
-      {/* Tabs */}
-      <div className="flex justify-center gap-4 mb-4 flex-wrap">
-        {Object.entries(categorias).map(([key, cat]) => (
-          <button
-            key={key}
-            onClick={() => {
-              setCategoria(key);
-              setFiltro("todos");
-            }}
-            className={`px-4 py-2 rounded-full border transition font-medium text-sm md:text-base ${
-              categoria === key
-                ? "bg-purple-600 text-white border-purple-600"
-                : "bg-white text-purple-700 border-purple-300 hover:bg-purple-50"
-            }`}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
 
       {/* Filtros de sabor (solo para tortas) */}
       {categoria === "torta" && (
@@ -75,7 +54,7 @@ function Catalogo() {
         </div>
       )}
 
-      {/* Tarjetas */}
+      {/* Productos */}
       <div className="grid md:grid-cols-3 gap-6">
         {activa.productos.map((producto, i) => (
           <div
@@ -87,9 +66,7 @@ function Catalogo() {
               alt={producto.nombre}
               className="h-48 w-full object-cover rounded mb-4"
             />
-            <h3 className="text-xl font-bold text-purple-700 mb-1">
-              {producto.nombre}
-            </h3>
+            <h3 className="text-xl font-bold text-purple-700 mb-1">{producto.nombre}</h3>
 
             {producto.relleno && (
               <p className="text-sm text-gray-600 italic mb-1">{producto.relleno}</p>

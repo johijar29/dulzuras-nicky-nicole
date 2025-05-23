@@ -9,9 +9,9 @@ function App() {
       {/* Sección bienvenida */}
       <main className="pt-10 px-6 text-center">
         <img
-          src="/logo-nicky.png"
+          src="/logo-nicky-transparent.png"
           alt="Logo Dulzuras de Nicky Nicole"
-          className="mx-auto h-32 mb-4"
+          className="h-32 w-32 object-cover rounded-full border-4 border-purple-300 shadow-lg mx-auto mb-4"
         />
         <h1 className="text-4xl font-bold text-purple-700 mb-2">
           Bienvenidos a Dulzuras de Nicky Nicole

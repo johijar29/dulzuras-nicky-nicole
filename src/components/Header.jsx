@@ -48,18 +48,31 @@ function Header() {
               Catálogo ▾
             </button>
             {showCatalogo && (
-              <div className="absolute bg-white shadow-md mt-2 rounded-lg w-48 p-2 z-50">
-                <Link to="/catalogo" className="block px-4 py-2 hover:bg-purple-50 rounded">
+              <div className="absolute bg-white shadow-md mt-2 rounded-lg w-52 p-2 z-50">
+                <Link
+                  to="/catalogo/torta"
+                  onClick={() => setShowCatalogo(false)}
+                  className="block px-4 py-2 hover:bg-purple-50 rounded"
+                >
                   Tortas Personalizadas
                 </Link>
-                <Link to="/catalogo/vaso" className="block px-4 py-2 hover:bg-purple-50 rounded">
+                <Link
+                  to="/catalogo/vaso"
+                  onClick={() => setShowCatalogo(false)}
+                  className="block px-4 py-2 hover:bg-purple-50 rounded"
+                >
                   Tortas en Vaso
                 </Link>
-                <Link to="/catalogo/alfajor" className="block px-4 py-2 hover:bg-purple-50 rounded">
+                <Link
+                  to="/catalogo/alfajor"
+                  onClick={() => setShowCatalogo(false)}
+                  className="block px-4 py-2 hover:bg-purple-50 rounded"
+                >
                   Alfajores y Galletas
                 </Link>
               </div>
             )}
+
           </div>
 
           <Link to="/formulario" className="hover:text-purple-900 transition">Personalizar</Link>
