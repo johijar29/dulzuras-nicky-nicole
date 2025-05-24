@@ -14,7 +14,9 @@ function Catalogo() {
     torta: {
       label: "Tortas Personalizadas",
       productos: tortasPersonalizadas.filter((torta) =>
-        filtro === "todos" ? true : torta.relleno?.toLowerCase().includes(filtro)
+        filtro === "todos"
+          ? true
+          : torta.relleno?.toLowerCase().includes(filtro)
       )
     },
     vaso: {
@@ -56,44 +58,57 @@ function Catalogo() {
 
       {/* Productos */}
       <div className="grid md:grid-cols-3 gap-6">
-        {activa.productos.map((producto, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-xl shadow-md hover:shadow-lg transition p-4 flex flex-col justify-between"
-          >
-            <img
-              src={`/assets/${producto.imagen || "pastel1.jpg"}`}
-              alt={producto.nombre}
-              className="h-48 w-full object-cover rounded mb-4"
-            />
-            <h3 className="text-xl font-bold text-purple-700 mb-1">{producto.nombre}</h3>
+        {activa.productos.map((producto, i) => {
+          const ruta = `/assets/${categoria}s/${producto.imagen || "default.jpg"}`;
 
-            {producto.relleno && (
-              <p className="text-sm text-gray-600 italic mb-1">{producto.relleno}</p>
-            )}
-            {producto.ingredientes && (
-              <p className="text-sm text-gray-600 italic mb-1">{producto.ingredientes}</p>
-            )}
-            {producto.descripcion && (
-              <p className="text-sm text-gray-500 mb-2">{producto.descripcion}</p>
-            )}
-
-            <p className="text-sm font-semibold text-gray-800">
-              {producto.tamaños
-                ? `Desde: $${Math.min(...Object.values(producto.tamaños))}`
-                : `Precio: $${producto.precio}`}
-            </p>
-
-            <Link
-              to={`/formulario?tipo=${categoria}&producto=${encodeURIComponent(
-                producto.nombre
-              )}`}
-              className="mt-4 bg-purple-600 text-white text-center py-2 rounded hover:bg-purple-700"
+          return (
+            <div
+              key={i}
+              className="bg-white rounded-xl shadow-md hover:shadow-lg transition p-4 flex flex-col justify-between"
             >
-              {categoria === "torta" ? "Personalizar" : "Encargar"}
-            </Link>
-          </div>
-        ))}
+              <img
+                src={ruta}
+                alt={producto.nombre}
+                className="h-48 w-full object-cover rounded mb-4"
+              />
+
+              <h3 className="text-xl font-bold text-purple-700 mb-1">
+                {producto.nombre}
+              </h3>
+
+              {producto.relleno && (
+                <p className="text-sm text-gray-600 italic mb-1">
+                  {producto.relleno}
+                </p>
+              )}
+              {producto.ingredientes && (
+                <p className="text-sm text-gray-600 italic mb-1">
+                  {producto.ingredientes}
+                </p>
+              )}
+              {producto.descripcion && (
+                <p className="text-sm text-gray-500 mb-2">
+                  {producto.descripcion}
+                </p>
+              )}
+
+              <p className="text-sm font-semibold text-gray-800">
+                {producto.tamaños
+                  ? `Desde: $${Math.min(...Object.values(producto.tamaños))}`
+                  : `Precio: $${producto.precio}`}
+              </p>
+
+              <Link
+                to={`/formulario?tipo=${categoria}&producto=${encodeURIComponent(
+                  producto.nombre
+                )}`}
+                className="mt-4 bg-purple-600 text-white text-center py-2 rounded hover:bg-purple-700"
+              >
+                {categoria === "torta" ? "Personalizar" : "Encargar"}
+              </Link>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
