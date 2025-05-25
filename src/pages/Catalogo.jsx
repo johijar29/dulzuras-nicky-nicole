@@ -69,7 +69,7 @@ function Catalogo() {
               <img
                 src={ruta}
                 alt={producto.nombre}
-                className="h-48 w-full object-cover rounded mb-4"
+                className="h-48 w-full object-contain md:object-cover rounded mb-4"
               />
 
               <h3 className="text-xl font-bold text-purple-700 mb-1">

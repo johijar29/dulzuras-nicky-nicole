@@ -3,6 +3,15 @@ import { FaWhatsapp } from "react-icons/fa";
 function TortaModal({ torta, onClose }) {
   if (!torta) return null;
 
+  // 🕒 Calculamos la fecha más próxima válida
+  const hoy = new Date();
+  const fechaMinima = new Date(hoy);
+  fechaMinima.setDate(hoy.getDate() + 7);
+  const fechaFormateada = fechaMinima.toLocaleDateString("es-CL", {
+    day: "numeric",
+    month: "long"
+  });
+
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center px-4">
       <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 relative">
@@ -18,7 +27,7 @@ function TortaModal({ torta, onClose }) {
         <img
           src={torta.imagen}
           alt={torta.nombre}
-          className="w-full h-64 object-cover rounded mb-4"
+          className="w-full h-64 object-contain md:object-cover rounded mb-4"
         />
 
         {/* Info */}
@@ -26,14 +35,22 @@ function TortaModal({ torta, onClose }) {
         <p className="text-gray-600 italic mb-2">{torta.descripcion}</p>
         <p className="text-gray-800 font-semibold mb-1">Desde: ${torta.precio}</p>
 
+        {/* Validación de tiempo */}
+        <p className="text-sm text-red-500 font-medium mt-2">
+          📅 Se reserva con mínimo 7 días de anticipación.
+        </p>
+        <p className="text-xs text-gray-500 italic mb-3">
+          Próxima entrega disponible: {fechaFormateada}
+        </p>
+
         {/* Gancho emocional */}
         <p className="text-sm text-purple-600 text-center mt-2 italic">
-          ¡Pedidos 100% personalizados con entrega en Puente Alto! 💜
+          ¡Pedidos personalizados con entrega en Puente Alto! 💜
         </p>
 
         {/* Botón CTA */}
         <a
-          href={`https://wa.me/56974062743?text=¡Hola Nicky! Me encantó la ${torta.nombre}. ¿Está disponible para [fecha]? Quisiera saber cómo encargarla 🥰🍰`}
+          href={`https://wa.me/56974062743?text=¡Hola Nicky! Me encantó la ${torta.nombre}. ¿Está disponible para el ${fechaFormateada}? Quisiera saber cómo encargarla 🥰🍰`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white py-2 mt-3 rounded font-medium"
@@ -47,7 +64,7 @@ function TortaModal({ torta, onClose }) {
           +100 tortas entregadas con amor 💜 Clientes felices en Puente Alto
         </p>
 
-        {/* Redireccionar si no está listo */}
+        {/* Enlace a Instagram */}
         <p className="text-center text-sm mt-4 text-gray-500">
           ¿Aún no decides?{" "}
           <a

@@ -52,7 +52,7 @@ function Carrusel() {
         <img
           src={actualSlide.imagen}
           alt={actualSlide.titulo}
-          className="w-full h-[420px] object-cover transition-all duration-700"
+          className="w-full h-[420px] object-contain md:object-cover transition-all duration-700"
         />
 
         {/* Overlay de texto visible en hover o por defecto en móvil */}
