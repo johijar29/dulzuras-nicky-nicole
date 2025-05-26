@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import {
-  tortasPersonalizadas,
-  tortasVaso,
-  alfajoresYGalletas
-} from "../data/productos";
-import { db } from "../firebase/firebaseConfig";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { db } from "../firebase/firebaseConfig";
+import { tortasPersonalizadas, tortasVaso, alfajoresYGalletas } from "../data/productos";
 import PedidoExitosoModal from "../components/PedidoExitosoModal";
+import emailjs from "@emailjs/browser";
+
+const SERVICE_ID = "service_7qv5o0s";
+const TEMPLATE_ID = "template_e57l7h9";
+const PUBLIC_KEY = "7NppPVTz-0ZFnPS_6";
 
 function FormularioPedido() {
   const [searchParams] = useSearchParams();
@@ -29,25 +30,36 @@ function FormularioPedido() {
   fechaMinima.setDate(hoy.getDate() + 7);
   const fechaMinimaStr = fechaMinima.toISOString().split("T")[0];
 
-  const productos = tipo === "torta" ? tortasPersonalizadas : tipo === "vaso" ? tortasVaso : alfajoresYGalletas;
+  const productos =
+    tipo === "torta"
+      ? tortasPersonalizadas
+      : tipo === "vaso"
+      ? tortasVaso
+      : alfajoresYGalletas;
+
   const seleccionado = productos.find((p) => p.nombre === producto);
-  const tamañosDisponibles = tipo === "torta" ? Object.keys(seleccionado?.tamaños || {}) : tipo === "vaso" ? ["unidad"] : ["unidad", "pack12"];
-  const total = tipo === "torta" ? (seleccionado?.tamaños?.[tamaño] || 0) : seleccionado?.precio || 0;
+  const tamañosDisponibles =
+    tipo === "torta"
+      ? Object.keys(seleccionado?.tamaños || {})
+      : tipo === "vaso"
+      ? ["unidad"]
+      : ["unidad", "pack12"];
+
+  const total =
+    tipo === "torta"
+      ? seleccionado?.tamaños?.[tamaño] || 0
+      : seleccionado?.precio || 0;
   const abono = total / 2;
 
-  const mensajePlano = `Hola Nicki, soy ${nombre} (${correo} / ${telefono}) y quiero pedir una ${tipo === "torta" ? "torta personalizada" : tipo}:
-- Producto: ${producto}
-${tipo === "torta" ? `- Tamaño: ${tamaño} personas` : ""}
-- Precio total: $${total}
-- Abono: $${abono}
-- Fecha estimada de entrega: ${fechaEntrega || "por definir"}
-
-¿Está disponible para esa fecha? 😊🍰`;
-
-  const mensajeCodificado = encodeURIComponent(mensajePlano);
-
   const validarCampos = () => {
-    if (!producto || (tipo === "torta" && !tamaño) || !fechaEntrega || !nombre || !correo || !telefono) {
+    if (
+      !producto ||
+      (tipo === "torta" && !tamaño) ||
+      !fechaEntrega ||
+      !nombre ||
+      !correo ||
+      !telefono
+    ) {
       alert("Por favor completa todos los campos antes de continuar.");
       return false;
     }
@@ -63,7 +75,7 @@ ${tipo === "torta" ? `- Tamaño: ${tamaño} personas` : ""}
       abono,
       fechaEstimada: fechaEntrega,
       cliente: { nombre, correo, telefono },
-      fecha: Timestamp.now()
+      fecha: Timestamp.now(),
     });
     console.log("✅ Pedido guardado en Firebase");
   };
@@ -71,15 +83,45 @@ ${tipo === "torta" ? `- Tamaño: ${tamaño} personas` : ""}
   const enviarWhatsApp = async () => {
     if (!validarCampos()) return;
     await guardarPedido();
-    window.open(`https://wa.me/56974062743?text=${mensajeCodificado}`, "_blank");
+
+    const mensaje = `Hola Nicki, soy ${nombre} (${correo} / ${telefono}) y quiero pedir una ${
+      tipo === "torta" ? "torta personalizada" : tipo
+    }:\n- Producto: ${producto}\n${
+      tipo === "torta" ? `- Tamaño: ${tamaño} personas\n` : ""
+    }- Precio total: $${total}\n- Abono: $${abono}\n- Fecha estimada de entrega: ${
+      fechaEntrega || "por definir"
+    }\n\n¿Está disponible para esa fecha? 😊🍰`;
+
+    window.open(
+      `https://wa.me/56974062743?text=${encodeURIComponent(mensaje)}`,
+      "_blank"
+    );
   };
 
   const enviarCorreo = async () => {
     if (!validarCampos()) return;
     await guardarPedido();
-    setTimeout(() => {
-      window.location.href = `mailto:dulzuras.nickynicole@gmail.com?subject=Encargo de ${producto}&body=${mensajeCodificado}`;
-    }, 300);
+
+    const templateParams = {
+      from_name: nombre,
+      reply_to: correo,
+      telefono,
+      producto,
+      tamaño,
+      fechaEntrega,
+      precio: total,
+      abono,
+    };
+
+    emailjs
+      .send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY)
+      .then(() => {
+        alert("✅ Correo enviado correctamente.");
+      })
+      .catch((error) => {
+        console.error("❌ Error al enviar el correo:", error);
+        alert("Ocurrió un error al enviar el correo.");
+      });
   };
 
   const enviarDirecto = async () => {
@@ -98,85 +140,145 @@ ${tipo === "torta" ? `- Tamaño: ${tamaño} personas` : ""}
         🕒 Todos los pedidos deben hacerse con mínimo 7 días de anticipación.
       </p>
 
-      {/* Campos de contacto */}
+      {/* Datos de contacto */}
       <div className="mb-4">
         <label className="block font-medium mb-1">Tu nombre</label>
-        <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="w-full p-2 border rounded bg-purple-50" />
+        <input
+          type="text"
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          className="w-full p-2 border rounded bg-purple-50"
+        />
       </div>
       <div className="mb-4">
         <label className="block font-medium mb-1">Correo electrónico</label>
-        <input type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} className="w-full p-2 border rounded bg-purple-50" />
+        <input
+          type="email"
+          value={correo}
+          onChange={(e) => setCorreo(e.target.value)}
+          className="w-full p-2 border rounded bg-purple-50"
+        />
       </div>
       <div className="mb-4">
         <label className="block font-medium mb-1">Teléfono</label>
-        <input type="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} className="w-full p-2 border rounded bg-purple-50" />
+        <input
+          type="tel"
+          value={telefono}
+          onChange={(e) => setTelefono(e.target.value)}
+          className="w-full p-2 border rounded bg-purple-50"
+        />
       </div>
 
-      {/* Tipo de producto */}
+      {/* Tipo, producto, tamaño y fecha */}
       <div className="mb-4">
         <label className="block font-medium mb-1">Tipo de producto</label>
-        <select value={tipo} onChange={(e) => { setTipo(e.target.value); setProducto(""); setTamaño(""); }} className="w-full p-2 border rounded bg-purple-50">
+        <select
+          value={tipo}
+          onChange={(e) => {
+            setTipo(e.target.value);
+            setProducto("");
+            setTamaño("");
+          }}
+          className="w-full p-2 border rounded bg-purple-50"
+        >
           <option value="torta">Torta personalizada</option>
           <option value="vaso">Torta en vaso</option>
           <option value="alfajor">Alfajor / Galleta</option>
         </select>
       </div>
 
-      {/* Producto */}
       <div className="mb-4">
         <label className="block font-medium mb-1">Elige tu {tipo}</label>
-        <select value={producto} onChange={(e) => setProducto(e.target.value)} className="w-full p-2 border rounded bg-purple-50">
+        <select
+          value={producto}
+          onChange={(e) => setProducto(e.target.value)}
+          className="w-full p-2 border rounded bg-purple-50"
+        >
           <option value="">-- Seleccionar --</option>
           {productos.map((p, i) => (
-            <option key={i} value={p.nombre}>{p.nombre}</option>
+            <option key={i} value={p.nombre}>
+              {p.nombre}
+            </option>
           ))}
         </select>
       </div>
 
-      {/* Tamaño */}
       {tipo === "torta" && producto && (
         <div className="mb-4">
           <label className="block font-medium mb-1">Tamaño</label>
-          <select value={tamaño} onChange={(e) => setTamaño(e.target.value)} className="w-full p-2 border rounded bg-purple-50">
+          <select
+            value={tamaño}
+            onChange={(e) => setTamaño(e.target.value)}
+            className="w-full p-2 border rounded bg-purple-50"
+          >
             <option value="">-- Seleccionar --</option>
             {tamañosDisponibles.map((t, i) => (
-              <option key={i} value={t}>{t} personas</option>
+              <option key={i} value={t}>
+                {t} personas
+              </option>
             ))}
           </select>
         </div>
       )}
 
-      {/* Fecha */}
       {producto && (
         <div className="mb-4">
           <label className="block font-medium mb-1">Fecha estimada de entrega</label>
-          <input type="date" min={fechaMinimaStr} value={fechaEntrega} onChange={(e) => setFechaEntrega(e.target.value)} className="w-full p-2 border rounded bg-purple-50" />
-          <p className="text-xs text-gray-500 mt-1 italic">* Solo puedes seleccionar fechas desde el {fechaMinimaStr}</p>
+          <input
+            type="date"
+            min={fechaMinimaStr}
+            value={fechaEntrega}
+            onChange={(e) => setFechaEntrega(e.target.value)}
+            className="w-full p-2 border rounded bg-purple-50"
+          />
+          <p className="text-xs text-gray-500 mt-1 italic">
+            * Solo puedes seleccionar fechas desde el {fechaMinimaStr}
+          </p>
         </div>
       )}
 
-      {/* Ingredientes */}
-      {producto && (
-        <>
-          {seleccionado?.relleno && <p className="text-sm text-gray-600 italic mb-1">Relleno: {seleccionado.relleno}</p>}
-          {seleccionado?.ingredientes && <p className="text-sm text-gray-600 italic mb-3">Ingredientes: {seleccionado.ingredientes}</p>}
-        </>
+      {producto && seleccionado?.ingredientes && (
+        <div className="text-sm text-gray-600 mb-2 italic">
+          Ingredientes: {seleccionado.ingredientes}
+        </div>
+      )}
+      {producto && seleccionado?.relleno && (
+        <div className="text-sm text-gray-600 mb-2 italic">
+          Relleno: {seleccionado.relleno}
+        </div>
       )}
 
-      {/* Totales */}
       {producto && (
         <div className="text-center mb-4">
-          <p className="text-lg font-semibold text-gray-700">Total: <span className="text-purple-700">${total}</span></p>
-          <p className="text-sm text-gray-500">Abono: <span className="font-medium">${abono}</span> (50%)</p>
+          <p className="text-lg font-semibold text-gray-700">
+            Total: <span className="text-purple-700">${total}</span>
+          </p>
+          <p className="text-sm text-gray-500">
+            Abono: <span className="font-medium">${abono}</span> (50%)
+          </p>
         </div>
       )}
 
-      {/* Botones */}
       {producto && (
         <div className="flex flex-col gap-2">
-          <button onClick={enviarWhatsApp} className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded shadow">Enviar por WhatsApp</button>
-          <button onClick={enviarCorreo} className="w-full bg-purple-50 hover:bg-purple-100 text-purple-700 py-2 rounded border">¿Prefieres enviar por correo?</button>
-          <button onClick={enviarDirecto} className="w-full bg-purple-100 hover:bg-purple-200 text-purple-700 py-2 rounded border shadow-sm">Enviar directamente desde aquí</button>
+          <button
+            onClick={enviarWhatsApp}
+            className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded shadow"
+          >
+            Enviar por WhatsApp
+          </button>
+          <button
+            onClick={enviarCorreo}
+            className="w-full bg-purple-50 hover:bg-purple-100 text-purple-700 py-2 rounded border"
+          >
+            ¿Prefieres enviar por correo?
+          </button>
+          <button
+            onClick={enviarDirecto}
+            className="w-full bg-purple-100 hover:bg-purple-200 text-purple-700 py-2 rounded border shadow-sm"
+          >
+            Enviar directamente desde aquí
+          </button>
         </div>
       )}
 
